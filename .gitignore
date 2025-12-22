@@ -1,0 +1,4 @@
+/.venv
+.env
+music/migrations
+db.sqlite3
