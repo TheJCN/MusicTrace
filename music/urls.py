@@ -1,7 +1,8 @@
-from django.urls import path
-from .views import track_list, top_tracks
+from django.urls import path, include
+from .views import connect_yandex, yandex_now_playing
 
 urlpatterns = [
-    path('tracks/', track_list, name='track_list'),
-    path('stats/top-tracks/', top_tracks),
+    path("connect/yandex/", connect_yandex, name="connect_yandex"),
+    path("yandex/now-playing/", yandex_now_playing, name="yandex_now_playing"),
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
