@@ -54,6 +54,12 @@ urlpatterns = [
         music_views.spotify_current,
         name='spotify_current'
     ),
+
+    path(
+        'spotify/callback/',
+        music_views.spotify_callback,
+        name='spotify_callback'
+    ),
 ]
 
 

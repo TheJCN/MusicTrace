@@ -3,7 +3,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Текущий трек — Яндекс Музыка</title>
+    <title>Текущий трек — Spotify</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,18 +39,18 @@
             color: #555;
         }
 
-        .yandex-link {
+        .spotify-link {
             display: inline-block;
             margin-top: 12px;
             padding: 10px 16px;
-            background-color: #ffcc00;
-            color: #000;
+            background-color: #1db954;
+            color: white;
             text-decoration: none;
             border-radius: 8px;
             font-weight: bold;
         }
 
-        .yandex-link:hover {
+        .spotify-link:hover {
             opacity: 0.9;
         }
     </style>
@@ -66,11 +66,11 @@
             <p>Длительность: {{ track.duration_ms|ms_to_time }}</p>
 
             <a
-                href="https://music.yandex.ru/track/{{ track.external_id }}"
+                href="{{ track.track_url }}"
                 target="_blank"
-                class="yandex-link"
+                class="spotify-link"
             >
-                Открыть в Яндекс Музыке
+                Открыть в Spotify
             </a>
         {% endif %}
 
