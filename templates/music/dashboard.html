@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard — MusicTrace</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 400px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin-bottom: 30px;
+            color: #555;
+        }
+
+        .services a {
+            display: block;
+            margin-bottom: 15px;
+            padding: 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            color: white;
+        }
+
+        .yandex {
+            background-color: #ffcc00;
+            color: #000;
+        }
+
+        .spotify {
+            background-color: #1db954;
+        }
+
+        .services a:hover {
+            opacity: 0.9;
+        }
+
+        .logout {
+            margin-top: 30px;
+            display: block;
+            color: #555;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard</h1>
+
+        <p>Привет, {{ request.user.username }}!</p>
+
+        <div class="services">
+            {% if yandex_connected %}
+                <a href="{% url 'yandex_current' %}" class="yandex">
+                    Посмотреть текущий трек (Яндекс)
+                </a>
+            {% else %}
+                <a href="{% url 'yandex_connect' %}" class="yandex">
+                    Подключить Яндекс Музыку
+                </a>
+            {% endif %}
+
+            {% if spotify_connected %}
+                <a href="{% url 'spotify_current' %}" class="spotify">
+                    Посмотреть текущий трек (Spotify)
+                </a>
+            {% else %}
+                <a href="{% url 'spotify_connect' %}" class="spotify">
+                    Подключить Spotify
+                </a>
+            {% endif %}
+        </div>
+
+
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit">Выйти</button>
+        </form>
+    </div>
+</body>
+</html>

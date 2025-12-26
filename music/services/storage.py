@@ -18,6 +18,7 @@ def save_track_and_activity(user, yandex_track):
             "artist": artist,
             "duration_ms": yandex_track.duration_ms,
             "genre": genre,
+            "avatar": "https://" + str(yandex_track.cover_uri).replace("%%", "orig")
         }
     )
 
@@ -25,12 +26,15 @@ def save_track_and_activity(user, yandex_track):
     print("Artist:", artist)
     print("Genre:", genre)
     print("Track duration (ms):", yandex_track.duration_ms)
+    print("Avatar:", "https://" + str(yandex_track.cover_uri).replace("%%", "orig"))
+
 
     if not created:
         track.title = yandex_track.title
         track.artist = artist
         track.duration_ms = yandex_track.duration_ms
         track.genre = genre
+        track.avatar = "https://" + str(yandex_track.cover_uri).replace("%%", "orig")
         track.save()
 
     UserTrackActivity.objects.create(

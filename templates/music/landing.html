@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>MusicTrace</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f7f7f7;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            margin-bottom: 16px;
+        }
+
+        p {
+            margin-bottom: 32px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .buttons a {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1px solid #000;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .buttons a:hover {
+            background-color: #000;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MusicTrace</h1>
+
+        <p>
+            MusicTrace — это веб-сервис для агрегации музыкальной активности пользователя
+            из различных музыкальных платформ. Сервис позволяет отслеживать историю
+            прослушиваний, анализировать предпочтения и получать рекомендации треков.
+        </p>
+
+        <div class="buttons">
+            <a href="{% url 'login' %}">Войти</a>
+            <a href="{% url 'register' %}">Регистрация</a>
+        </div>
+    </div>
+</body>
+</html>

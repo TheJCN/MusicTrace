@@ -1,8 +1,59 @@
-from django.urls import path, include
-from .views import connect_yandex, yandex_now_playing
+from django.urls import path
+from django.contrib.auth import views as auth_views
+
+from music import views as music_views
 
 urlpatterns = [
-    path("connect/yandex/", connect_yandex, name="connect_yandex"),
-    path("yandex/now-playing/", yandex_now_playing, name="yandex_now_playing"),
-    path('accounts/', include('django.contrib.auth.urls')),
+    # Landing
+    path('', music_views.landing, name='landing'),
+
+    # Auth
+    path(
+        'login/',
+        auth_views.LoginView.as_view(template_name='registration/login.html'),
+        name='login'
+    ),
+    path(
+        'logout/',
+        auth_views.LogoutView.as_view(),
+        name='logout'
+    ),
+    path(
+        'register/',
+        music_views.register,
+        name='register'
+    ),
+
+    # Dashboard
+    path(
+        'dashboard/',
+        music_views.dashboard,
+        name='dashboard'
+    ),
+
+    # Yandex
+    path(
+        'yandex/connect/',
+        music_views.yandex_connect,
+        name='yandex_connect'
+    ),
+    path(
+        'yandex/current/',
+        music_views.yandex_current,
+        name='yandex_current'
+    ),
+
+    # Spotify
+    path(
+        'spotify/connect/',
+        music_views.spotify_connect,
+        name='spotify_connect'
+    ),
+    path(
+        'spotify/current/',
+        music_views.spotify_current,
+        name='spotify_current'
+    ),
 ]
+
+
