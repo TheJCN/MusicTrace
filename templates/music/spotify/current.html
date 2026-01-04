@@ -72,6 +72,14 @@
             >
                 Открыть в Spotify
             </a>
+            
+            <a
+                href="{% url 'track_lyrics' track.id %}"
+                class="spotify-link"
+                style="background-color:#333; margin-top:10px;"
+            >
+                Узнать текст
+            </a>
         {% endif %}
 
         <p style="margin-top: 20px;">

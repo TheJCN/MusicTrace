@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 
-from music import views as music_views
+from music import views as music_views, views
 
 urlpatterns = [
     # Landing
@@ -59,6 +59,12 @@ urlpatterns = [
         'spotify/callback/',
         music_views.spotify_callback,
         name='spotify_callback'
+    ),
+
+    path(
+        "track/<int:track_id>/lyrics/",
+        views.track_lyrics,
+        name="track_lyrics"
     ),
 ]
 

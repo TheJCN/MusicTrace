@@ -3,6 +3,9 @@ from music.models import Track, UserTrackActivity
 
 
 def save_spotify_current_track(user, data: dict):
+    """
+    Сохраняет текущий трек Spotify и активность пользователя.
+    """
     track, _ = Track.objects.get_or_create(
         service="spotify",
         external_id=data["external_id"],

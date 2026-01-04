@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Текст песни</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            padding: 40px;
+        }
+
+        .card {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-bottom: 5px;
+        }
+
+        .artist {
+            color: #777;
+            margin-bottom: 20px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .back {
+            margin-top: 25px;
+            display: inline-block;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        {% if error %}
+            <p>{{ error }}</p>
+        {% else %}
+            <h2>{{ track.title }}</h2>
+            <div class="artist">{{ track.artist }}</div>
+
+            <pre>{{ lyrics }}</pre>
+        {% endif %}
+
+        <a href="javascript:history.back()" class="back">← Назад</a>
+    </div>
+</body>
+</html>

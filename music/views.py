@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from spotipy import SpotifyOAuth
 
@@ -8,7 +8,8 @@ from MusicTrace import settings
 from integrations.spotify.api import SpotifyMusicAPI
 from integrations.yandex.api import YandexMusicAPI
 from music.forms import YandexTokenForm
-from music.models import UserMusicService
+from music.models import UserMusicService, Track
+from music.services.lyrics_service import LyricsService
 from music.services.spotify_service import save_spotify_current_track
 from music.services.yandex_service import save_yandex_current_track
 
@@ -62,7 +63,6 @@ def dashboard(request):
 
 @login_required
 def yandex_connect(request):
-    # Проверяем, подключён ли уже Яндекс
     service = UserMusicService.objects.filter(
         user=request.user,
         service='yandex'
@@ -178,7 +178,11 @@ def spotify_current(request):
     if not service:
         return redirect("spotify_connect")
 
-    api = SpotifyMusicAPI(service.access_token)
+    from integrations.spotify.utils import get_valid_spotify_token
+
+    access_token = get_valid_spotify_token(service)
+
+    api = SpotifyMusicAPI(access_token)
     data = api.get_current_track()
 
     if not data:
@@ -194,5 +198,26 @@ def spotify_current(request):
         request,
         "music/spotify/current.html",
         {"track": track}
+    )
+
+
+@login_required
+def track_lyrics(request, track_id):
+    track = get_object_or_404(Track, id=track_id)
+
+    service = LyricsService()
+    lyrics = service.get_lyrics(track)
+
+    if not lyrics:
+        return render(
+            request,
+            "music/lyrics.html",
+            {"error": "Текст не найден"}
+        )
+
+    return render(
+        request,
+        "music/lyrics.html",
+        {"lyrics": lyrics}
     )
 

@@ -5,6 +5,8 @@
 - UserMusicService — подключённые музыкальные сервисы пользователя
 - Track — универсальное представление музыкального трека
 - UserTrackActivity — история музыкальной активности пользователей
+- TrackLyricsStats — статистика просмотров текстов песен
+- TrackLyrics — сохранённые тексты популярных треков
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -131,3 +133,60 @@ class UserTrackActivity(models.Model):
 
     def __str__(self):
         return f"{self.user.username} → {self.track}"
+
+
+class TrackLyricsStats(models.Model):
+    """
+    Статистика просмотров текстов песен.
+
+    Используется для определения популярности текста трека
+    и принятия решения о его сохранении в базе данных.
+
+    Текст сохраняется только после достижения заданного
+    порога просмотров (например, 3).
+    """
+
+    track = models.OneToOneField(
+        Track,
+        on_delete=models.CASCADE,
+        related_name='lyrics_stats'
+    )
+
+    views = models.PositiveIntegerField(default=0)
+    last_viewed_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Lyrics views: {self.track} — {self.views}"
+
+
+class TrackLyrics(models.Model):
+    """
+    Сохранённый текст песни.
+
+    Создаётся только для популярных треков, текст которых
+    был запрошен пользователями достаточное количество раз.
+
+    Используется для:
+    - снижения количества внешних API-запросов
+    - ускорения отображения текста
+    - экономии лимитов сторонних сервисов
+    """
+
+    PROVIDER_CHOICES = (
+        ('musixmatch', 'Musixmatch'),
+        ('lyrics_ovh', 'Lyrics.ovh'),
+    )
+
+    track = models.OneToOneField(
+        Track,
+        on_delete=models.CASCADE,
+        related_name='lyrics'
+    )
+
+    lyrics = models.TextField()
+    provider = models.CharField(max_length=50, choices=PROVIDER_CHOICES)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Lyrics: {self.track}"
