@@ -1,16 +1,18 @@
+from datetime import timedelta
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
+from django.db.models import Count
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from spotipy import SpotifyOAuth
 
 from MusicTrace import settings
-from integrations.spotify.api import SpotifyMusicAPI
 from integrations.yandex.api import YandexMusicAPI
 from music.forms import YandexTokenForm
-from music.models import UserMusicService, Track
+from music.models import UserMusicService, Track, UserTrackActivity
 from music.services.lyrics_service import LyricsService
-from music.services.spotify_service import save_spotify_current_track
 from music.services.yandex_service import save_yandex_current_track
 
 
@@ -36,28 +38,6 @@ def register(request):
         request,
         'registration/register.html',
         {'form': form}
-    )
-
-
-@login_required
-def dashboard(request):
-    yandex_connected = UserMusicService.objects.filter(
-        user=request.user,
-        service='yandex'
-    ).exists()
-
-    spotify_connected = UserMusicService.objects.filter(
-        user=request.user,
-        service='spotify'
-    ).exists()
-
-    return render(
-        request,
-        'music/dashboard.html',
-        {
-            'yandex_connected': yandex_connected,
-            'spotify_connected': spotify_connected,
-        }
     )
 
 
@@ -92,36 +72,6 @@ def yandex_connect(request):
             'connected': bool(service),
         }
     )
-
-
-@login_required
-def yandex_current(request):
-    service = UserMusicService.objects.filter(
-        user=request.user,
-        service='yandex'
-    ).first()
-
-    if not service:
-        return redirect('yandex_connect')
-
-    api = YandexMusicAPI(service.access_token)
-    yandex_track = api.get_current_track()
-
-    if not yandex_track:
-        return render(
-            request,
-            'music/yandex/current.html',
-            {'error': 'Сейчас ничего не воспроизводится'}
-        )
-
-    track = save_yandex_current_track(request.user, yandex_track)
-
-    return render(
-        request,
-        'music/yandex/current.html',
-        {'track': track}
-    )
-
 
 
 @login_required
@@ -169,39 +119,6 @@ def spotify_callback(request):
 
 
 @login_required
-def spotify_current(request):
-    service = UserMusicService.objects.filter(
-        user=request.user,
-        service="spotify"
-    ).first()
-
-    if not service:
-        return redirect("spotify_connect")
-
-    from integrations.spotify.utils import get_valid_spotify_token
-
-    access_token = get_valid_spotify_token(service)
-
-    api = SpotifyMusicAPI(access_token)
-    data = api.get_current_track()
-
-    if not data:
-        return render(
-            request,
-            "music/spotify/current.html",
-            {"error": "Сейчас ничего не воспроизводится"}
-        )
-
-    track = save_spotify_current_track(request.user, data)
-
-    return render(
-        request,
-        "music/spotify/current.html",
-        {"track": track}
-    )
-
-
-@login_required
 def track_lyrics(request, track_id):
     track = get_object_or_404(Track, id=track_id)
 
@@ -221,3 +138,142 @@ def track_lyrics(request, track_id):
         {"lyrics": lyrics}
     )
 
+
+@login_required
+def dashboard(request):
+    yandex_connected = UserMusicService.objects.filter(user=request.user, service="yandex").exists()
+    spotify_connected = UserMusicService.objects.filter(user=request.user, service="spotify").exists()
+
+    return render(
+        request,
+        "music/dashboard.html",
+        {
+            "yandex_connected": yandex_connected,
+            "spotify_connected": spotify_connected,
+            "source": request.GET.get("source", "yandex" if yandex_connected else "spotify"),
+        }
+    )
+
+
+@login_required
+def api_now_playing(request):
+    service = UserMusicService.objects.filter(user=request.user, service="yandex").first()
+    if not service:
+        return JsonResponse({"status": "error"})
+
+    api = YandexMusicAPI(service.access_token)
+    data = api.get_current_track()
+    if not data:
+        return JsonResponse({"status": "empty"})
+
+    track = save_yandex_current_track(request.user, data)
+
+    return JsonResponse({
+        "status": "ok",
+        "track": {
+            "id": track.id,
+            "title": track.title,
+            "artist": track.artist,
+            "cover": track.cover_url,
+        }
+    })
+
+
+@login_required
+def api_stats_summary(request):
+    qs = UserTrackActivity.objects.filter(user=request.user)
+
+    top_genre = (
+        qs.exclude(track__genre__isnull=True)
+          .exclude(track__genre="")
+          .values("track__genre")
+          .annotate(c=Count("track_id", distinct=True))
+          .order_by("-c")
+          .first()
+    )
+
+    top_artist = (
+        qs.values("track__artist")
+          .annotate(c=Count("track_id", distinct=True))
+          .order_by("-c")
+          .first()
+    )
+
+    total_tracks = qs.values("track_id").distinct().count() or 1
+
+    return JsonResponse({
+        "top_genre": {
+            "name": top_genre["track__genre"] if top_genre else "—",
+            "percent": int(top_genre["c"] / total_tracks * 100) if top_genre else 0,
+        },
+        "top_artist": {
+            "name": top_artist["track__artist"] if top_artist else "—",
+            "percent": int(top_artist["c"] / total_tracks * 100) if top_artist else 0,
+        }
+    })
+
+
+@login_required
+def api_stats_recent(request):
+    qs = (
+        UserTrackActivity.objects
+        .filter(user=request.user)
+        .select_related("track")
+        .order_by("-played_at")[:20]
+    )
+
+    return JsonResponse({
+        "tracks": [
+            {
+                "title": a.track.title,
+                "artist": a.track.artist,
+                "cover": a.track.cover_url,
+            } for a in qs
+        ]
+    })
+
+
+@login_required
+def api_stats_activity(request):
+    period = request.GET.get("period", "day")
+    now = timezone.now()
+
+    if period == "day":
+        start = now - timedelta(hours=24)
+        buckets = 24
+        key = "hour"
+    elif period == "week":
+        start = now - timedelta(days=7)
+        buckets = 7
+        key = "day"
+    else:  # month
+        start = now - timedelta(days=30)
+        buckets = 30
+        key = "day"
+
+    qs = (
+        UserTrackActivity.objects
+        .filter(user=request.user, played_at__gte=start)
+        .values("track_id", "played_at")
+    )
+
+    data = [0] * buckets
+    seen = [set() for _ in range(buckets)]
+
+    for row in qs:
+        dt = row["played_at"]
+        idx = (
+            dt.hour if key == "hour"
+            else (now.date() - dt.date()).days
+        )
+
+        if 0 <= idx < buckets:
+            seen[idx].add(row["track_id"])
+
+    for i in range(buckets):
+        data[i] = len(seen[i])
+
+    return JsonResponse({
+        "period": period,
+        "data": data[::-1]
+    })

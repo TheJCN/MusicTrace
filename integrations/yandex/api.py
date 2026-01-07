@@ -32,7 +32,7 @@ class YandexMusicAPI:
         response = requests.get(
             "http://track.mipoh.ru/get_current_track_beta",
             headers={"ya-token": self.token},
-            timeout=5
+            timeout=30
         )
 
         if response.status_code != 200:

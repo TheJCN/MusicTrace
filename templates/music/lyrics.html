@@ -2,59 +2,80 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Текст песни</title>
+    <title>Lyrics — MusicTrace</title>
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, Arial, sans-serif;
+            background: radial-gradient(circle at top right, #3b1c5a, #0b0816 60%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
             padding: 40px;
         }
 
         .card {
-            max-width: 700px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 760px;
+            background: rgba(27, 22, 48, 0.95);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.55);
         }
 
         h2 {
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            font-size: 26px;
         }
 
         .artist {
-            color: #777;
-            margin-bottom: 20px;
+            font-size: 14px;
+            opacity: .65;
+            margin-bottom: 28px;
         }
 
         pre {
             white-space: pre-wrap;
-            line-height: 1.6;
+            font-family: Inter, Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.7;
+            opacity: .85;
+        }
+
+        .error {
+            color: #f87171;
             font-size: 15px;
         }
 
         .back {
-            margin-top: 25px;
             display: inline-block;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #a855f7;
             text-decoration: none;
-            color: #333;
-            font-weight: bold;
+            font-weight: 600;
+        }
+
+        .back:hover {
+            opacity: .8;
         }
     </style>
 </head>
+
 <body>
-    <div class="card">
-        {% if error %}
-            <p>{{ error }}</p>
-        {% else %}
-            <h2>{{ track.title }}</h2>
-            <div class="artist">{{ track.artist }}</div>
+<div class="card">
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% else %}
+        <h2>{{ track.title }}</h2>
+        <div class="artist">{{ track.artist }}</div>
+        <pre>{{ lyrics }}</pre>
+    {% endif %}
 
-            <pre>{{ lyrics }}</pre>
-        {% endif %}
-
-        <a href="javascript:history.back()" class="back">← Назад</a>
-    </div>
+    <a href="javascript:history.back()" class="back">← Назад</a>
+</div>
 </body>
 </html>

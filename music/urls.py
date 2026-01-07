@@ -1,71 +1,24 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-
-from music import views as music_views, views
+from music import views
 
 urlpatterns = [
-    # Landing
-    path('', music_views.landing, name='landing'),
+    path("", views.landing, name="landing"),
+    path("dashboard/", views.dashboard, name="dashboard"),
 
-    # Auth
-    path(
-        'login/',
-        auth_views.LoginView.as_view(template_name='registration/login.html'),
-        name='login'
-    ),
-    path(
-        'logout/',
-        auth_views.LogoutView.as_view(),
-        name='logout'
-    ),
-    path(
-        'register/',
-        music_views.register,
-        name='register'
-    ),
+    path("login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
+    path("register/", views.register, name="register"),
+    path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 
-    # Dashboard
-    path(
-        'dashboard/',
-        music_views.dashboard,
-        name='dashboard'
-    ),
 
-    # Yandex
-    path(
-        'yandex/connect/',
-        music_views.yandex_connect,
-        name='yandex_connect'
-    ),
-    path(
-        'yandex/current/',
-        music_views.yandex_current,
-        name='yandex_current'
-    ),
+    path("yandex/connect/", views.yandex_connect, name="yandex_connect"),
+    path("spotify/connect/", views.spotify_connect, name="spotify_connect"),
+    path("spotify/callback/", views.spotify_callback, name="spotify_callback"),
 
-    # Spotify
-    path(
-        'spotify/connect/',
-        music_views.spotify_connect,
-        name='spotify_connect'
-    ),
-    path(
-        'spotify/current/',
-        music_views.spotify_current,
-        name='spotify_current'
-    ),
+    path("track/<int:track_id>/lyrics/", views.track_lyrics, name="track_lyrics"),
 
-    path(
-        'spotify/callback/',
-        music_views.spotify_callback,
-        name='spotify_callback'
-    ),
-
-    path(
-        "track/<int:track_id>/lyrics/",
-        views.track_lyrics,
-        name="track_lyrics"
-    ),
+    path("api/now-playing/", views.api_now_playing),
+    path("api/stats/summary/", views.api_stats_summary),
+    path("api/stats/recent/", views.api_stats_recent),
+    path("api/stats/activity/", views.api_stats_activity),
 ]
-
-

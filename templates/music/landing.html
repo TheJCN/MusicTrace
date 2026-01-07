@@ -3,67 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <title>MusicTrace</title>
+
     <style>
         body {
             margin: 0;
-            height: 100vh;
-            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            font-family: Inter, Arial, sans-serif;
+            background: radial-gradient(circle at top left, #3b1c5a, #0b0816 60%);
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #f7f7f7;
+            color: #fff;
         }
 
-        .container {
+        .card {
+            max-width: 640px;
+            background: rgba(27, 22, 48, 0.95);
+            padding: 48px;
+            border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.55);
             text-align: center;
-            max-width: 600px;
-            padding: 40px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin: 0 auto 20px;
         }
 
         h1 {
-            margin-bottom: 16px;
+            font-size: 28px;
+            margin-bottom: 14px;
         }
 
         p {
-            margin-bottom: 32px;
-            color: #555;
-            line-height: 1.6;
+            font-size: 15px;
+            line-height: 1.7;
+            opacity: .75;
+            margin-bottom: 36px;
         }
 
-        .buttons a {
-            display: inline-block;
-            margin: 0 10px;
-            padding: 12px 24px;
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 14px 26px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 15px;
             text-decoration: none;
-            border-radius: 8px;
-            border: 1px solid #000;
-            color: #000;
-            font-weight: bold;
+            color: #fff;
+            background: #241f3d;
+            border: 1px solid #2f2a4f;
+            transition: all .2s ease;
         }
 
-        .buttons a:hover {
-            background-color: #000;
-            color: #fff;
+        .btn.primary {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            border: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: .95;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>MusicTrace</h1>
+<div class="card">
+    <div class="logo">🎵</div>
 
-        <p>
-            MusicTrace — это веб-сервис для агрегации музыкальной активности пользователя
-            из различных музыкальных платформ. Сервис позволяет отслеживать историю
-            прослушиваний, анализировать предпочтения и получать рекомендации треков.
-        </p>
+    <h1>MusicTrace</h1>
 
-        <div class="buttons">
-            <a href="{% url 'login' %}">Войти</a>
-            <a href="{% url 'register' %}">Регистрация</a>
-        </div>
+    <p>
+        MusicTrace — это сервис для анализа вашей музыкальной активности.
+        Подключайте Spotify и Яндекс Музыку, отслеживайте историю прослушиваний,
+        узнавайте любимые жанры и исполнителей, и получайте персональные рекомендации.
+    </p>
+
+    <div class="buttons">
+        <a href="{% url 'login' %}" class="btn">Войти</a>
+        <a href="{% url 'register' %}" class="btn primary">Регистрация</a>
     </div>
+</div>
 </body>
 </html>

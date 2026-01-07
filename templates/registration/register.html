@@ -3,19 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <title>Register — MusicTrace</title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, Arial, sans-serif;
+            background: radial-gradient(circle at 80% 20%, #3a1c5c, #0f0b1c 60%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .auth-card {
+            width: 360px;
+            background: rgba(27, 22, 48, 0.85);
+            border-radius: 20px;
+            padding: 36px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            backdrop-filter: blur(12px);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            opacity: .6;
+            margin-bottom: 28px;
+        }
+
+        label {
+            font-size: 11px;
+            letter-spacing: 1px;
+            opacity: .6;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 0;
+            border-radius: 12px;
+            border: 1px solid #2f2a4f;
+            background: #15112a;
+            color: #fff;
+            margin-bottom: 18px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .error {
+            background: rgba(255,0,0,0.12);
+            border: 1px solid rgba(255,0,0,0.35);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .footer {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 13px;
+            opacity: .7;
+        }
+
+        .footer a {
+            color: #c084fc;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-    <h2>Регистрация</h2>
+
+<div class="auth-card">
+    <h2>Create account</h2>
+    <div class="subtitle">Join MusicTrace</div>
+
+    {% if form.errors %}
+        <div class="error">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    {{ error }}<br>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Создать аккаунт</button>
+
+        {% for field in form %}
+            <label>{{ field.label|upper }}</label>
+            {{ field }}
+        {% endfor %}
+
+        <button type="submit">Create account →</button>
     </form>
 
-    <p>
+    <div class="footer">
         Уже есть аккаунт?
         <a href="{% url 'login' %}">Войти</a>
-    </p>
+    </div>
+</div>
+
 </body>
 </html>

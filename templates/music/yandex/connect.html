@@ -2,27 +2,150 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Подключение Яндекс Музыки</title>
+    <title>Подключение Яндекс Музыки — MusicTrace</title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, Arial, sans-serif;
+            background: radial-gradient(circle at top left, #3b1c5a, #0b0816 60%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 40px;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 460px;
+            background: rgba(27, 22, 48, 0.95);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.55);
+        }
+
+        .logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #ffcc00, #f59e0b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin: 0 auto 20px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            opacity: .7;
+            margin-bottom: 30px;
+        }
+
+        .success {
+            background: rgba(34,197,94,.15);
+            color: #4ade80;
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        form p {
+            margin-bottom: 18px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 14px 0;;
+            border-radius: 12px;
+            border: 1px solid #2f2a4f;
+            background: #18132b;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 0 2px rgba(168,85,247,.25);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            color: #000;
+            background: linear-gradient(135deg, #ffcc00, #f59e0b);
+            transition: all .2s ease;
+        }
+
+        button:hover {
+            opacity: .95;
+            transform: translateY(-1px);
+        }
+
+        .back {
+            display: block;
+            margin-top: 26px;
+            text-align: center;
+            font-size: 14px;
+            color: #a855f7;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back:hover {
+            opacity: .8;
+        }
+    </style>
 </head>
+
 <body>
+<div class="card">
+    <div class="logo">Y</div>
+
     <h2>Подключение Яндекс Музыки</h2>
+    <div class="subtitle">
+        Введите токен, чтобы начать отслеживание вашей активности
+    </div>
 
     {% if connected %}
-        <p style="color: green;">
+        <div class="success">
             Яндекс Музыка уже подключена. Вы можете обновить токен.
-        </p>
+        </div>
     {% endif %}
 
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
+
         <button type="submit">
             {% if connected %}Обновить токен{% else %}Подключить{% endif %}
         </button>
     </form>
 
-    <p>
-        <a href="{% url 'dashboard' %}">← Назад в Dashboard</a>
-    </p>
+    <a href="{% url 'dashboard' %}" class="back">
+        ← Назад в Dashboard
+    </a>
+</div>
 </body>
 </html>

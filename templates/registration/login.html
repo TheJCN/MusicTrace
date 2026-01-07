@@ -3,23 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <title>Login — MusicTrace</title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, Arial, sans-serif;
+            background: radial-gradient(circle at 20% 20%, #3a1c5c, #0f0b1c 60%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+
+        .auth-card {
+            width: 360px;
+            background: rgba(27, 22, 48, 0.85);
+            border-radius: 20px;
+            padding: 36px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            backdrop-filter: blur(12px);
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            opacity: .6;
+            margin-bottom: 28px;
+        }
+
+        label {
+            font-size: 11px;
+            letter-spacing: 1px;
+            opacity: .6;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 0;
+            border-radius: 12px;
+            border: 1px solid #2f2a4f;
+            background: #15112a;
+            color: #fff;
+            margin-bottom: 18px;
+        }
+
+        input::placeholder {
+            color: #777;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .error {
+            background: rgba(255,0,0,0.12);
+            border: 1px solid rgba(255,0,0,0.35);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 13px;
+            opacity: .7;
+        }
+
+        .footer a {
+            color: #c084fc;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
-    <h2>Вход</h2>
+
+<div class="auth-card">
+    <div class="logo">♪</div>
+
+    <h2>Music Analytics</h2>
+    <div class="subtitle">Log in to access your dashboard</div>
 
     {% if form.errors %}
-        <p style="color:red;">Неверный логин или пароль</p>
+        <div class="error">Неверный логин или пароль</div>
     {% endif %}
 
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Войти</button>
+
+        {% for field in form %}
+            <label>{{ field.label|upper }}</label>
+            {{ field }}
+        {% endfor %}
+
+        <button type="submit">Login to Dashboard →</button>
     </form>
 
-    <p>
+    <div class="footer">
         Нет аккаунта?
-        <a href="{% url 'register' %}">Зарегистрироваться</a>
-    </p>
+        <a href="{% url 'register' %}">Регистрация</a>
+    </div>
+</div>
+
 </body>
 </html>

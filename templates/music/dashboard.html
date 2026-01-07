@@ -1,101 +1,465 @@
+{% load music_extras %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard — MusicTrace</title>
+    <title>MusicTrace — Dashboard</title>
+    
     <style>
         body {
             margin: 0;
+            font-family: Inter, Arial, sans-serif;
+            background: #0f0b1c;
+            color: #fff;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        .card {
+            background: #1b1630;
+            border-radius: 16px;
+            padding: 24px;
+        }
+        
+        .onboarding {
             min-height: 100vh;
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        .onboarding-card {
+            width: 420px;
             text-align: center;
-            width: 400px;
         }
 
-        h1 {
-            margin-bottom: 20px;
-        }
-
-        p {
-            margin-bottom: 30px;
-            color: #555;
-        }
-
-        .services a {
+        .connect-btn {
             display: block;
-            margin-bottom: 15px;
             padding: 14px;
+            margin-top: 16px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .yandex-btn { background: #ffcc00; color: #000; }
+        .spotify-btn { background: #1db954; }
+        
+        .dashboard {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .source-switch a {
+            padding: 8px 14px;
+            border-radius: 20px;
+            background: #241f3d;
+            margin-right: 10px;
+        }
+
+        .source-switch .active {
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .now-playing img {
+            width: 140px;
+            height: 140px;
+            border-radius: 12px;
+        }
+        
+        .skeleton-cover {
+            width: 140px;
+            height: 140px;
+            border-radius: 12px;
+            background: linear-gradient(
+                90deg,
+                #2f2a4f 25%,
+                #3a3560 37%,
+                #2f2a4f 63%
+            );
+            background-size: 400% 100%;
+            animation: shimmer 1.4s infinite;
+        }
+
+        .skeleton-line {
+            height: 16px;
+            width: 200px;
+            margin-top: 12px;
+            background: #2f2a4f;
             border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            color: white;
         }
 
-        .yandex {
-            background-color: #ffcc00;
-            color: #000;
+        .short { width: 120px; }
+
+        @keyframes shimmer {
+            0% { background-position: 100% 0; }
+            100% { background-position: -100% 0; }
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
         }
 
-        .spotify {
-            background-color: #1db954;
+        .stat-card { text-align: center; }
+
+        .stat-header {
+            font-size: 12px;
+            opacity: .6;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
         }
 
-        .services a:hover {
-            opacity: 0.9;
+        .stat-circle {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 10px solid #2f2a4f;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, rgba(168,85,247,.15), transparent 70%);
         }
 
-        .logout {
-            margin-top: 30px;
-            display: block;
-            color: #555;
-            text-decoration: none;
+        .stat-percent {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .stat-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        
+        .activity-volume {
+            margin-top: 24px;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .activity-tabs {
+            display: flex;
+            background: #241f3d;
+            border-radius: 20px;
+            padding: 4px;
+        }
+
+        .activity-tabs button {
+            border: none;
+            background: transparent;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 16px;
+            cursor: pointer;
+            opacity: .6;
+        }
+
+        .activity-tabs button.active {
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            opacity: 1;
+        }
+
+        .activity-chart {
+            display: flex;
+            align-items: flex-end;
+            height: 160px;
+            gap: 8px;
+        }
+
+        .activity-bar span {
+            position: absolute;
+            top: -18px;
+            font-size: 11px;
+            opacity: .7;
+        }
+        
+        .recent-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .recent-list {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        .recent-track img {
+            width: 42px;
+            height: 42px;
+            border-radius: 6px;
+        }
+        
+        .ai-card {
+            margin-top: 24px;
+            background: linear-gradient(135deg, #6d28d9, #db2777);
+        }
+
+        .ai-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+
+        .ai-track {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .ai-track img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+        }
+
+        .ai-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255,255,255,.2);
+            color: #fff;
+            font-weight: 600;
+            cursor: not-allowed;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Dashboard</h1>
 
-        <p>Привет, {{ request.user.username }}!</p>
+{% if not yandex_connected and not spotify_connected %}
 
-        <div class="services">
+<div class="onboarding">
+    <div class="onboarding-card card">
+        <h1>Добро пожаловать в MusicTrace</h1>
+        <p>Подключите музыкальные сервисы</p>
+
+        <a href="{% url 'yandex_connect' %}" class="connect-btn yandex-btn">
+            Подключить Яндекс Музыку
+        </a>
+        <a href="{% url 'spotify_connect' %}" class="connect-btn spotify-btn">
+            Подключить Spotify
+        </a>
+    </div>
+</div>
+
+{% else %}
+
+<div class="dashboard" data-source="{{ source }}">
+
+    <div class="header">
+        <h2>Music Analytics</h2>
+
+        <div class="source-switch">
             {% if yandex_connected %}
-                <a href="{% url 'yandex_current' %}" class="yandex">
-                    Посмотреть текущий трек (Яндекс)
-                </a>
-            {% else %}
-                <a href="{% url 'yandex_connect' %}" class="yandex">
-                    Подключить Яндекс Музыку
-                </a>
+                <a href="?source=yandex" class="{% if source == 'yandex' %}active{% endif %}">Yandex Music</a>
             {% endif %}
-
             {% if spotify_connected %}
-                <a href="{% url 'spotify_current' %}" class="spotify">
-                    Посмотреть текущий трек (Spotify)
-                </a>
-            {% else %}
-                <a href="{% url 'spotify_connect' %}" class="spotify">
-                    Подключить Spotify
-                </a>
+                <a href="?source=spotify" class="{% if source == 'spotify' %}active{% endif %}">Spotify</a>
             {% endif %}
         </div>
-
-
-        <form method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button type="submit">Выйти</button>
-        </form>
     </div>
+
+    <div class="grid">
+        
+        <div>
+
+            <div class="card" id="now-playing-card">
+                <div class="skeleton-cover"></div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line short"></div>
+            </div>
+
+            <div class="stats">
+                <div class="card stat-card" id="top-genre">
+                    <div class="stat-header">Top Genre</div>
+                    <div class="stat-circle">
+                        <span class="stat-percent">--%</span>
+                    </div>
+                    <div class="stat-name">Loading…</div>
+                </div>
+
+                <div class="card stat-card" id="top-artist">
+                    <div class="stat-header">Top Artist</div>
+                    <div class="stat-circle">
+                        <span class="stat-percent">--%</span>
+                    </div>
+                    <div class="stat-name">Loading…</div>
+                </div>
+            </div>
+
+            <div class="card activity-volume">
+                <div class="activity-header">
+                    <h3>Activity Volume</h3>
+                    <div class="activity-tabs">
+                        <button class="active" data-period="day">Day</button>
+                        <button data-period="week">Week</button>
+                        <button data-period="month">Month</button>
+                    </div>
+                </div>
+                <div class="activity-chart" id="activity-chart"></div>
+            </div>
+
+        </div>
+        
+        <div>
+            <div class="card">
+                <div class="recent-header">
+                    <h3>Recent History</h3>
+                    <a href="#">View all →</a>
+                </div>
+                <div class="recent-list" id="recent-list"></div>
+            </div>
+
+            <div class="card ai-card">
+                <div class="ai-header">
+                    <span>AI SUGGESTION</span>
+                    <span>98% match</span>
+                </div>
+
+                <div class="ai-track">
+                    <img src="https://via.placeholder.com/60">
+                    <div>
+                        <strong>Touch</strong><br>
+                        <small>Daft Punk</small>
+                    </div>
+                </div>
+
+                <button class="ai-btn">Listen now</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endif %}
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const root = document.querySelector(".dashboard");
+    if (!root) return;
+
+    const source = root.dataset.source;
+    let currentTrackId = null;
+
+    const nowPlayingCard = document.getElementById("now-playing-card");
+
+    function loadNowPlaying() {
+        fetch(`/api/now-playing/?source=${source}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status !== "ok") return;
+
+                if (data.track.id !== currentTrackId) {
+                    currentTrackId = data.track.id;
+                    nowPlayingCard.innerHTML = `
+                        <div class="now-playing">
+                            <img src="${data.track.cover}">
+                            <div>
+                                <small style="opacity:.6">NOW PLAYING</small>
+                                <h2>${data.track.title}</h2>
+                                <p>${data.track.artist}</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+    }
+
+    function loadStatsSummary() {
+        fetch(`/api/stats/summary/?source=${source}`)
+            .then(r => r.json())
+            .then(data => {
+                document.querySelector("#top-genre .stat-percent").innerText =
+                    data.top_genre.percent + "%";
+                document.querySelector("#top-genre .stat-name").innerText =
+                    data.top_genre.name;
+
+                document.querySelector("#top-artist .stat-percent").innerText =
+                    data.top_artist.percent + "%";
+                document.querySelector("#top-artist .stat-name").innerText =
+                    data.top_artist.name;
+            });
+    }
+
+    function loadRecent() {
+        fetch(`/api/stats/recent/`)
+            .then(r => r.json())
+            .then(data => {
+                const list = document.getElementById("recent-list");
+                list.innerHTML = "";
+                data.tracks.slice(0, 12).forEach(t => {
+                    list.innerHTML += `
+                        <div class="recent-track">
+                            <img src="${t.cover}">
+                            <div>
+                                <strong>${t.title}</strong><br>
+                                <small>${t.artist}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+    }
+
+    function loadActivity(period = "day") {
+        fetch(`/api/stats/activity/?period=${period}`)
+            .then(r => r.json())
+            .then(data => {
+                const chart = document.getElementById("activity-chart");
+                chart.innerHTML = "";
+                const max = Math.max(...data.data, 1);
+
+                data.data.forEach(v => {
+                    const bar = document.createElement("div");
+                    bar.className = "activity-bar";
+                    bar.style.height = `${(v / max) * 100}%`;
+                    if (v === max) bar.classList.add("active");
+                    bar.innerHTML = `<span>${v}</span>`;
+                    chart.appendChild(bar);
+                });
+            });
+    }
+
+    document.querySelectorAll(".activity-tabs button").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".activity-tabs button")
+                .forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            loadActivity(btn.dataset.period);
+        });
+    });
+
+    loadNowPlaying();
+    loadStatsSummary();
+    loadRecent();
+    loadActivity("day");
+    setInterval(loadNowPlaying, 10000);
+});
+</script>
+
 </body>
 </html>
