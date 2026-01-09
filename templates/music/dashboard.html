@@ -2,320 +2,233 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>MusicTrace — Dashboard</title>
-    
-    <style>
-        body {
-            margin: 0;
-            font-family: Inter, Arial, sans-serif;
-            background: #0f0b1c;
-            color: #fff;
-        }
+<meta charset="UTF-8">
+<title>MusicTrace — Dashboard</title>
 
-        a { text-decoration: none; color: inherit; }
+<style>
+body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    background: #0f0b1c;
+    color: #fff;
+}
+a { text-decoration: none; color: inherit; }
 
-        .card {
-            background: #1b1630;
-            border-radius: 16px;
-            padding: 24px;
-        }
-        
-        .onboarding {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+.dashboard {
+    padding: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
 
-        .onboarding-card {
-            width: 420px;
-            text-align: center;
-        }
+.card {
+    background: #1b1630;
+    border-radius: 16px;
+    padding: 24px;
+}
 
-        .connect-btn {
-            display: block;
-            padding: 14px;
-            margin-top: 16px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
+.header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
 
-        .yandex-btn { background: #ffcc00; color: #000; }
-        .spotify-btn { background: #1db954; }
-        
-        .dashboard {
-            padding: 30px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+.source-switch a {
+    padding: 8px 14px;
+    border-radius: 20px;
+    background: #241f3d;
+    margin-right: 10px;
+    cursor: pointer;
+}
+.source-switch .active {
+    background: linear-gradient(90deg,#a855f7,#ec4899);
+}
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-        }
+.grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
 
-        .source-switch a {
-            padding: 8px 14px;
-            border-radius: 20px;
-            background: #241f3d;
-            margin-right: 10px;
-        }
+.now-playing {
+    display: flex;
+    gap: 16px;
+}
+.now-playing img {
+    width: 140px;
+    height: 140px;
+    border-radius: 12px;
+}
 
-        .source-switch .active {
-            background: linear-gradient(90deg, #a855f7, #ec4899);
-        }
+.skeleton-cover {
+    width: 140px;
+    height: 140px;
+    border-radius: 12px;
+    background: linear-gradient(90deg,#2f2a4f 25%,#3a3560 37%,#2f2a4f 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s infinite;
+}
+.skeleton-line {
+    height: 16px;
+    width: 200px;
+    background: #2f2a4f;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+@keyframes shimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
 
-        .grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 24px;
-        }
+.stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 24px;
+}
+.stat-card {
+    text-align: center;
+}
+.stat-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 10px solid #2f2a4f;
+    margin: 16px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, rgba(168,85,247,.2), transparent 70%);
+}
+.stat-percent {
+    font-size: 28px;
+    font-weight: 700;
+}
 
-        .now-playing img {
-            width: 140px;
-            height: 140px;
-            border-radius: 12px;
-        }
-        
-        .skeleton-cover {
-            width: 140px;
-            height: 140px;
-            border-radius: 12px;
-            background: linear-gradient(
-                90deg,
-                #2f2a4f 25%,
-                #3a3560 37%,
-                #2f2a4f 63%
-            );
-            background-size: 400% 100%;
-            animation: shimmer 1.4s infinite;
-        }
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.activity-tabs {
+    display: flex;
+    background: #241f3d;
+    border-radius: 20px;
+    padding: 4px;
+}
+.activity-tabs button {
+    border: none;
+    background: transparent;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 16px;
+    cursor: pointer;
+    opacity: .6;
+}
+.activity-tabs button.active {
+    background: linear-gradient(90deg,#a855f7,#ec4899);
+    opacity: 1;
+}
 
-        .skeleton-line {
-            height: 16px;
-            width: 200px;
-            margin-top: 12px;
-            background: #2f2a4f;
-            border-radius: 8px;
-        }
+.activity-chart {
+    display: flex;
+    align-items: flex-end;
+    height: 160px;
+    gap: 8px;
+    margin-top: 16px;
+}
+.activity-bar {
+    flex: 1;
+    background: #2f2a4f;
+    border-radius: 6px 6px 0 0;
+}
+.activity-bar.active {
+    background: linear-gradient(180deg,#a855f7,#ec4899);
+}
 
-        .short { width: 120px; }
+.recent-track {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.recent-track img {
+    width: 42px;
+    height: 42px;
+    border-radius: 6px;
+}
 
-        @keyframes shimmer {
-            0% { background-position: 100% 0; }
-            100% { background-position: -100% 0; }
-        }
-        
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .stat-card { text-align: center; }
-
-        .stat-header {
-            font-size: 12px;
-            opacity: .6;
-            margin-bottom: 12px;
-            letter-spacing: 1px;
-        }
-
-        .stat-circle {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            border: 10px solid #2f2a4f;
-            margin: 0 auto 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: radial-gradient(circle, rgba(168,85,247,.15), transparent 70%);
-        }
-
-        .stat-percent {
-            font-size: 32px;
-            font-weight: 700;
-        }
-
-        .stat-name {
-            font-size: 15px;
-            font-weight: 600;
-        }
-        
-        .activity-volume {
-            margin-top: 24px;
-        }
-
-        .activity-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .activity-tabs {
-            display: flex;
-            background: #241f3d;
-            border-radius: 20px;
-            padding: 4px;
-        }
-
-        .activity-tabs button {
-            border: none;
-            background: transparent;
-            color: #fff;
-            padding: 6px 14px;
-            border-radius: 16px;
-            cursor: pointer;
-            opacity: .6;
-        }
-
-        .activity-tabs button.active {
-            background: linear-gradient(90deg, #a855f7, #ec4899);
-            opacity: 1;
-        }
-
-        .activity-chart {
-            display: flex;
-            align-items: flex-end;
-            height: 160px;
-            gap: 8px;
-        }
-
-        .activity-bar span {
-            position: absolute;
-            top: -18px;
-            font-size: 11px;
-            opacity: .7;
-        }
-        
-        .recent-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .recent-list {
-            max-height: 420px;
-            overflow-y: auto;
-        }
-
-        .recent-track img {
-            width: 42px;
-            height: 42px;
-            border-radius: 6px;
-        }
-        
-        .ai-card {
-            margin-top: 24px;
-            background: linear-gradient(135deg, #6d28d9, #db2777);
-        }
-
-        .ai-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 16px;
-        }
-
-        .ai-track {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .ai-track img {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
-        }
-
-        .ai-btn {
-            width: 100%;
-            padding: 12px;
-            border-radius: 12px;
-            border: none;
-            background: rgba(255,255,255,.2);
-            color: #fff;
-            font-weight: 600;
-            cursor: not-allowed;
-        }
-    </style>
+.ai-card {
+    margin-top: 24px;
+    background: linear-gradient(135deg,#6d28d9,#db2777);
+}
+.ai-track {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.ai-track img {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+}
+.ai-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: rgba(255,255,255,.2);
+    color: #fff;
+    font-weight: 600;
+}
+</style>
 </head>
 
 <body>
 
-{% if not yandex_connected and not spotify_connected %}
-
-<div class="onboarding">
-    <div class="onboarding-card card">
-        <h1>Добро пожаловать в MusicTrace</h1>
-        <p>Подключите музыкальные сервисы</p>
-
-        <a href="{% url 'yandex_connect' %}" class="connect-btn yandex-btn">
-            Подключить Яндекс Музыку
-        </a>
-        <a href="{% url 'spotify_connect' %}" class="connect-btn spotify-btn">
-            Подключить Spotify
-        </a>
-    </div>
-</div>
-
-{% else %}
-
-<div class="dashboard" data-source="{{ source }}">
+<div class="dashboard">
 
     <div class="header">
         <h2>Music Analytics</h2>
-
-        <div class="source-switch">
-            {% if yandex_connected %}
-                <a href="?source=yandex" class="{% if source == 'yandex' %}active{% endif %}">Yandex Music</a>
-            {% endif %}
-            {% if spotify_connected %}
-                <a href="?source=spotify" class="{% if source == 'spotify' %}active{% endif %}">Spotify</a>
-            {% endif %}
-        </div>
+        <div class="source-switch"></div>
     </div>
 
     <div class="grid">
-        
+
         <div>
 
             <div class="card" id="now-playing-card">
-                <div class="skeleton-cover"></div>
-                <div class="skeleton-line"></div>
-                <div class="skeleton-line short"></div>
+                <div class="now-playing">
+                    <div class="skeleton-cover"></div>
+                    <div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="stats">
-                <div class="card stat-card" id="top-genre">
-                    <div class="stat-header">Top Genre</div>
+                <div class="card stat-card" id="stat-genre">
+                    <small>TOP GENRE</small>
                     <div class="stat-circle">
                         <span class="stat-percent">--%</span>
                     </div>
-                    <div class="stat-name">Loading…</div>
+                    <strong class="stat-name">—</strong>
                 </div>
 
-                <div class="card stat-card" id="top-artist">
-                    <div class="stat-header">Top Artist</div>
+                <div class="card stat-card" id="stat-artist">
+                    <small>TOP ARTIST</small>
                     <div class="stat-circle">
                         <span class="stat-percent">--%</span>
                     </div>
-                    <div class="stat-name">Loading…</div>
+                    <strong class="stat-name">—</strong>
                 </div>
             </div>
 
-            <div class="card activity-volume">
+            <div class="card" style="margin-top:24px">
                 <div class="activity-header">
                     <h3>Activity Volume</h3>
                     <div class="activity-tabs">
-                        <button class="active" data-period="day">Day</button>
+                        <button data-period="day" class="active">Day</button>
                         <button data-period="week">Week</button>
                         <button data-period="month">Month</button>
                     </div>
@@ -324,22 +237,16 @@
             </div>
 
         </div>
-        
+
         <div>
+
             <div class="card">
-                <div class="recent-header">
-                    <h3>Recent History</h3>
-                    <a href="#">View all →</a>
-                </div>
-                <div class="recent-list" id="recent-list"></div>
+                <h3>Recent History</h3>
+                <div id="recent-list"></div>
             </div>
 
             <div class="card ai-card">
-                <div class="ai-header">
-                    <span>AI SUGGESTION</span>
-                    <span>98% match</span>
-                </div>
-
+                <small>AI SUGGESTION</small>
                 <div class="ai-track">
                     <img src="https://via.placeholder.com/60">
                     <div>
@@ -347,71 +254,103 @@
                         <small>Daft Punk</small>
                     </div>
                 </div>
-
-                <button class="ai-btn">Listen now</button>
+                <button class="ai-btn" disabled>Listen now</button>
             </div>
+
         </div>
 
     </div>
 </div>
 
-{% endif %}
-
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const root = document.querySelector(".dashboard");
-    if (!root) return;
+document.addEventListener("DOMContentLoaded", async () => {
 
-    const source = root.dataset.source;
-    let currentTrackId = null;
-
+    const sourceSwitch = document.querySelector(".source-switch");
     const nowPlayingCard = document.getElementById("now-playing-card");
 
-    function loadNowPlaying() {
-        fetch(`/api/now-playing/?source=${source}`)
-            .then(r => r.json())
-            .then(data => {
-                if (data.status !== "ok") return;
+    let activeSource = null;
+    let activePeriod = "day";
 
-                if (data.track.id !== currentTrackId) {
-                    currentTrackId = data.track.id;
-                    nowPlayingCard.innerHTML = `
-                        <div class="now-playing">
-                            <img src="${data.track.cover}">
-                            <div>
-                                <small style="opacity:.6">NOW PLAYING</small>
-                                <h2>${data.track.title}</h2>
-                                <p>${data.track.artist}</p>
-                            </div>
-                        </div>
-                    `;
+    const servicesResp = await fetch("/api/user/services/");
+    const servicesData = await servicesResp.json();
+
+    if (!servicesData.services.length) {
+        document.body.innerHTML = "<h2 style='padding:40px'>Подключите сервис</h2>";
+        return;
+    }
+
+    activeSource = servicesData.default;
+
+    ["yandex","spotify"].forEach(service => {
+        const connected = servicesData.services.includes(service);
+        const btn = document.createElement("a");
+        btn.textContent = service === "yandex" ? "Yandex Music" : "Spotify";
+        if (service === activeSource) btn.classList.add("active");
+
+        btn.onclick = e => {
+            e.preventDefault();
+            if (!connected) {
+                window.location.href = `/${service}/connect/`;
+                return;
+            }
+            activeSource = service;
+            [...sourceSwitch.children].forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            loadAll();
+        };
+
+        sourceSwitch.appendChild(btn);
+    });
+
+    function loadNowPlaying() {
+        nowPlayingCard.innerHTML = `
+            <div class="now-playing">
+                <div class="skeleton-cover"></div>
+                <div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+            </div>
+        `;
+
+        fetch(`/api/now-playing/?source=${activeSource}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.status !== "ok") {
+                    nowPlayingCard.innerHTML = "<p>Nothing playing</p>";
+                    return;
                 }
+                nowPlayingCard.innerHTML = `
+                    <div class="now-playing">
+                        <img src="${d.track.cover}">
+                        <div>
+                            <small>NOW PLAYING</small>
+                            <h2>${d.track.title}</h2>
+                            <p>${d.track.artist}</p>
+                        </div>
+                    </div>
+                `;
             });
     }
 
     function loadStatsSummary() {
-        fetch(`/api/stats/summary/?source=${source}`)
+        fetch(`/api/stats/summary/?source=${activeSource}`)
             .then(r => r.json())
-            .then(data => {
-                document.querySelector("#top-genre .stat-percent").innerText =
-                    data.top_genre.percent + "%";
-                document.querySelector("#top-genre .stat-name").innerText =
-                    data.top_genre.name;
-
-                document.querySelector("#top-artist .stat-percent").innerText =
-                    data.top_artist.percent + "%";
-                document.querySelector("#top-artist .stat-name").innerText =
-                    data.top_artist.name;
+            .then(d => {
+                document.querySelector("#stat-genre .stat-percent").innerText = d.top_genre.percent + "%";
+                document.querySelector("#stat-genre .stat-name").innerText = d.top_genre.name;
+                document.querySelector("#stat-artist .stat-percent").innerText = d.top_artist.percent + "%";
+                document.querySelector("#stat-artist .stat-name").innerText = d.top_artist.name;
             });
     }
 
     function loadRecent() {
-        fetch(`/api/stats/recent/`)
+        fetch(`/api/stats/recent/?source=${activeSource}`)
             .then(r => r.json())
-            .then(data => {
+            .then(d => {
                 const list = document.getElementById("recent-list");
                 list.innerHTML = "";
-                data.tracks.slice(0, 12).forEach(t => {
+                d.tracks.slice(0,10).forEach(t => {
                     list.innerHTML += `
                         <div class="recent-track">
                             <img src="${t.cover}">
@@ -425,39 +364,40 @@ document.addEventListener("DOMContentLoaded", () => {
             });
     }
 
-    function loadActivity(period = "day") {
-        fetch(`/api/stats/activity/?period=${period}`)
+    function loadActivity() {
+        fetch(`/api/stats/activity/?period=${activePeriod}&source=${activeSource}`)
             .then(r => r.json())
-            .then(data => {
+            .then(d => {
                 const chart = document.getElementById("activity-chart");
                 chart.innerHTML = "";
-                const max = Math.max(...data.data, 1);
-
-                data.data.forEach(v => {
+                const max = Math.max(...d.data, 1);
+                d.data.forEach(v => {
                     const bar = document.createElement("div");
                     bar.className = "activity-bar";
-                    bar.style.height = `${(v / max) * 100}%`;
+                    bar.style.height = v === 0 ? "4px" : `${(v/max)*100}%`;
                     if (v === max) bar.classList.add("active");
-                    bar.innerHTML = `<span>${v}</span>`;
                     chart.appendChild(bar);
                 });
             });
     }
 
     document.querySelectorAll(".activity-tabs button").forEach(btn => {
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".activity-tabs button")
-                .forEach(b => b.classList.remove("active"));
+        btn.onclick = () => {
+            document.querySelectorAll(".activity-tabs button").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            loadActivity(btn.dataset.period);
-        });
+            activePeriod = btn.dataset.period;
+            loadActivity();
+        };
     });
 
-    loadNowPlaying();
-    loadStatsSummary();
-    loadRecent();
-    loadActivity("day");
-    setInterval(loadNowPlaying, 10000);
+    function loadAll() {
+        loadNowPlaying();
+        loadStatsSummary();
+        loadRecent();
+        loadActivity();
+    }
+
+    loadAll();
 });
 </script>
 

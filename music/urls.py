@@ -21,4 +21,5 @@ urlpatterns = [
     path("api/stats/summary/", views.api_stats_summary),
     path("api/stats/recent/", views.api_stats_recent),
     path("api/stats/activity/", views.api_stats_activity),
+    path("api/user/services/", views.api_user_services),
 ]
