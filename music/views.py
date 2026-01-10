@@ -6,13 +6,16 @@ from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from spotipy import SpotifyOAuth
+from spotipy import SpotifyOAuth, SpotifyException
 
 from MusicTrace import settings
+from integrations.spotify.api import SpotifyMusicAPI
+from integrations.spotify.utils import get_valid_spotify_token
 from integrations.yandex.api import YandexMusicAPI
 from music.forms import YandexTokenForm
 from music.models import UserMusicService, Track, UserTrackActivity
 from music.services.lyrics_service import LyricsService
+from music.services.spotify_service import save_spotify_current_track
 from music.services.yandex_service import save_yandex_current_track
 
 
@@ -35,6 +38,11 @@ def register(request):
         form = UserCreationForm()
 
     return render(request, "registration/register.html", {"form": form})
+
+
+@login_required
+def dashboard(request):
+    return render(request, "music/dashboard.html")
 
 
 @login_required
@@ -106,28 +114,6 @@ def spotify_callback(request):
 
 
 @login_required
-def track_lyrics(request, track_id):
-    track = get_object_or_404(Track, id=track_id)
-    lyrics = LyricsService().get_lyrics(track)
-
-    if not lyrics:
-        return render(request, "music/lyrics.html", {"error": "Текст не найден"})
-
-    return render(
-        request,
-        "music/lyrics.html",
-        {"lyrics": lyrics, "track": track},
-    )
-
-
-@login_required
-def dashboard(request):
-    return render(request, "music/dashboard.html")
-
-# ========================= API =========================
-
-
-@login_required
 def api_user_services(request):
     services = list(
         UserMusicService.objects
@@ -149,40 +135,80 @@ def api_user_services(request):
 
 @login_required
 def api_now_playing(request):
-    source = request.GET.get("source", "yandex")
+    source = request.GET.get("source")
+
+    if source not in ("yandex", "spotify"):
+        return JsonResponse({"status": "error", "message": "Invalid source"})
 
     service = UserMusicService.objects.filter(
-        user=request.user, service=source
+        user=request.user,
+        service=source
     ).first()
 
     if not service:
-        return JsonResponse(
-            {"status": "not_connected", "service": source}
-        )
+        return JsonResponse({
+            "status": "not_connected",
+            "source": source
+        })
 
     if source == "yandex":
         api = YandexMusicAPI(service.access_token)
         data = api.get_current_track()
+
         if not data:
-            return JsonResponse({"status": "empty"})
+            return JsonResponse({
+                "status": "loading",
+                "source": "yandex"
+            })
 
         track = save_yandex_current_track(request.user, data)
 
-        return JsonResponse(
-            {
-                "status": "ok",
-                "track": {
-                    "id": track.id,
-                    "title": track.title,
-                    "artist": track.artist,
-                    "cover": track.cover_url,
-                },
-            }
-        )
+        return JsonResponse({
+            "status": "ok",
+            "source": "yandex",
+            "track": {
+                "id": track.id,
+                "title": track.title,
+                "artist": track.artist,
+                "cover": track.cover_url,
+            },
+        })
 
-    return JsonResponse(
-        {"status": "not_supported", "service": "spotify"}
-    )
+    if source == "spotify":
+        try:
+            access_token = get_valid_spotify_token(service)
+            api = SpotifyMusicAPI(access_token)
+            data = api.get_current_track()
+        except SpotifyException:
+            return JsonResponse({
+                "status": "auth_error",
+                "source": "spotify"
+            })
+
+        if data is None:
+            return JsonResponse({
+                "status": "empty",
+                "source": "spotify"
+            })
+
+        if not data.get("is_playing"):
+            return JsonResponse({
+                "status": "paused",
+                "source": "spotify"
+            })
+
+        track = save_spotify_current_track(request.user, data)
+
+        return JsonResponse({
+            "status": "ok",
+            "source": "spotify",
+            "track": {
+                "id": track.id,
+                "title": track.title,
+                "artist": track.artist,
+                "cover": track.cover_url,
+            }
+        })
 
 
 @login_required
@@ -250,9 +276,8 @@ def api_stats_activity(request):
     now = timezone.localtime()
 
     if period == "day":
-        buckets = 24
-        start = now - timedelta(hours=24)
         data = [0] * 24
+        start = now - timedelta(hours=24)
 
         qs = UserTrackActivity.objects.filter(
             user=request.user,
@@ -261,15 +286,13 @@ def api_stats_activity(request):
         )
 
         for a in qs:
-            hour = timezone.localtime(a.played_at).hour
-            data[hour] += 1
+            data[timezone.localtime(a.played_at).hour] += 1
 
         return JsonResponse({"data": data})
 
     if period == "week":
-        buckets = 7
-        start = now - timedelta(days=7)
         data = [0] * 7
+        start = now - timedelta(days=7)
 
         qs = UserTrackActivity.objects.filter(
             user=request.user,
@@ -278,15 +301,13 @@ def api_stats_activity(request):
         )
 
         for a in qs:
-            weekday = timezone.localtime(a.played_at).weekday()
-            data[weekday] += 1
+            data[timezone.localtime(a.played_at).weekday()] += 1
 
         return JsonResponse({"data": data})
 
     if period == "month":
-        buckets = 12
-        start = now - timedelta(days=365)
         data = [0] * 12
+        start = now - timedelta(days=365)
 
         qs = UserTrackActivity.objects.filter(
             user=request.user,
@@ -295,7 +316,21 @@ def api_stats_activity(request):
         )
 
         for a in qs:
-            month = timezone.localtime(a.played_at).month - 1
-            data[month] += 1
+            data[timezone.localtime(a.played_at).month - 1] += 1
 
         return JsonResponse({"data": data})
+
+
+@login_required
+def track_lyrics(request, track_id):
+    track = get_object_or_404(Track, id=track_id)
+    lyrics = LyricsService().get_lyrics(track)
+
+    if not lyrics:
+        return render(request, "music/lyrics.html", {"error": "Текст не найден"})
+
+    return render(
+        request,
+        "music/lyrics.html",
+        {"lyrics": lyrics, "track": track},
+    )

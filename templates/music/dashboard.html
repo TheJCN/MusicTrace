@@ -263,143 +263,178 @@ a { text-decoration: none; color: inherit; }
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", async () => {
+const state = {
+    activeSource: null,
+    activePeriod: "day",
+    nowPlayingRequestId: 0,
+};
 
-    const sourceSwitch = document.querySelector(".source-switch");
-    const nowPlayingCard = document.getElementById("now-playing-card");
+const els = {
+    sourceSwitch: document.querySelector(".source-switch"),
+    nowPlayingCard: document.getElementById("now-playing-card"),
+    recentList: document.getElementById("recent-list"),
+    activityChart: document.getElementById("activity-chart"),
+    activityTabs: document.querySelectorAll(".activity-tabs button"),
+};
 
-    let activeSource = null;
-    let activePeriod = "day";
+async function fetchJSON(url) {
+    const res = await fetch(url);
+    return res.json();
+}
 
-    const servicesResp = await fetch("/api/user/services/");
-    const servicesData = await servicesResp.json();
+function renderSkeleton() {
+    els.nowPlayingCard.innerHTML = `
+        <div class="now-playing">
+            <div class="skeleton-cover"></div>
+            <div>
+                <div class="skeleton-line"></div>
+                <div class="skeleton-line"></div>
+            </div>
+        </div>
+    `;
+}
 
-    if (!servicesData.services.length) {
+document.addEventListener("DOMContentLoaded", init);
+
+async function init() {
+    const services = await fetchJSON("/api/user/services/");
+
+    if (!services.services.length) {
         document.body.innerHTML = "<h2 style='padding:40px'>Подключите сервис</h2>";
         return;
     }
 
-    activeSource = servicesData.default;
+    state.activeSource = services.default;
+    initSourceSwitch(services);
+    initActivityTabs();
+    loadAll();
+}
 
-    ["yandex","spotify"].forEach(service => {
-        const connected = servicesData.services.includes(service);
+function initSourceSwitch({ services, default: def }) {
+    ["yandex", "spotify"].forEach(service => {
+        const connected = services.includes(service);
         const btn = document.createElement("a");
+
         btn.textContent = service === "yandex" ? "Yandex Music" : "Spotify";
-        if (service === activeSource) btn.classList.add("active");
+        if (service === def) btn.classList.add("active");
 
         btn.onclick = e => {
             e.preventDefault();
+
             if (!connected) {
                 window.location.href = `/${service}/connect/`;
                 return;
             }
-            activeSource = service;
-            [...sourceSwitch.children].forEach(b => b.classList.remove("active"));
+
+            if (state.activeSource === service) return;
+
+            state.activeSource = service;
+            [...els.sourceSwitch.children].forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
+
             loadAll();
         };
 
-        sourceSwitch.appendChild(btn);
+        els.sourceSwitch.appendChild(btn);
     });
+}
 
-    function loadNowPlaying() {
-        nowPlayingCard.innerHTML = `
+async function loadNowPlaying() {
+    const requestId = ++state.nowPlayingRequestId;
+    renderSkeleton();
+
+    try {
+        const data = await fetchJSON(`/api/now-playing/?source=${state.activeSource}`);
+
+        if (requestId !== state.nowPlayingRequestId) return;
+        if (data.source !== state.activeSource) return;
+        if (data.status === "loading") return;
+
+        if (data.status !== "ok") {
+            els.nowPlayingCard.innerHTML = "<p>Nothing playing</p>";
+            return;
+        }
+
+        els.nowPlayingCard.innerHTML = `
             <div class="now-playing">
-                <div class="skeleton-cover"></div>
+                <img src="${data.track.cover}">
                 <div>
-                    <div class="skeleton-line"></div>
-                    <div class="skeleton-line"></div>
+                    <small>NOW PLAYING</small>
+                    <h2>${data.track.title}</h2>
+                    <p>${data.track.artist}</p>
                 </div>
             </div>
         `;
-
-        fetch(`/api/now-playing/?source=${activeSource}`)
-            .then(r => r.json())
-            .then(d => {
-                if (d.status !== "ok") {
-                    nowPlayingCard.innerHTML = "<p>Nothing playing</p>";
-                    return;
-                }
-                nowPlayingCard.innerHTML = `
-                    <div class="now-playing">
-                        <img src="${d.track.cover}">
-                        <div>
-                            <small>NOW PLAYING</small>
-                            <h2>${d.track.title}</h2>
-                            <p>${d.track.artist}</p>
-                        </div>
-                    </div>
-                `;
-            });
+    } catch {
+        if (requestId === state.nowPlayingRequestId) {
+            els.nowPlayingCard.innerHTML = "<p>Error loading track</p>";
+        }
     }
+}
 
-    function loadStatsSummary() {
-        fetch(`/api/stats/summary/?source=${activeSource}`)
-            .then(r => r.json())
-            .then(d => {
-                document.querySelector("#stat-genre .stat-percent").innerText = d.top_genre.percent + "%";
-                document.querySelector("#stat-genre .stat-name").innerText = d.top_genre.name;
-                document.querySelector("#stat-artist .stat-percent").innerText = d.top_artist.percent + "%";
-                document.querySelector("#stat-artist .stat-name").innerText = d.top_artist.name;
-            });
-    }
+async function loadStatsSummary() {
+    const d = await fetchJSON(`/api/stats/summary/?source=${state.activeSource}`);
 
-    function loadRecent() {
-        fetch(`/api/stats/recent/?source=${activeSource}`)
-            .then(r => r.json())
-            .then(d => {
-                const list = document.getElementById("recent-list");
-                list.innerHTML = "";
-                d.tracks.slice(0,10).forEach(t => {
-                    list.innerHTML += `
-                        <div class="recent-track">
-                            <img src="${t.cover}">
-                            <div>
-                                <strong>${t.title}</strong><br>
-                                <small>${t.artist}</small>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-    }
+    document.querySelector("#stat-genre .stat-percent").textContent = `${d.top_genre.percent}%`;
+    document.querySelector("#stat-genre .stat-name").textContent = d.top_genre.name;
 
-    function loadActivity() {
-        fetch(`/api/stats/activity/?period=${activePeriod}&source=${activeSource}`)
-            .then(r => r.json())
-            .then(d => {
-                const chart = document.getElementById("activity-chart");
-                chart.innerHTML = "";
-                const max = Math.max(...d.data, 1);
-                d.data.forEach(v => {
-                    const bar = document.createElement("div");
-                    bar.className = "activity-bar";
-                    bar.style.height = v === 0 ? "4px" : `${(v/max)*100}%`;
-                    if (v === max) bar.classList.add("active");
-                    chart.appendChild(bar);
-                });
-            });
-    }
+    document.querySelector("#stat-artist .stat-percent").textContent = `${d.top_artist.percent}%`;
+    document.querySelector("#stat-artist .stat-name").textContent = d.top_artist.name;
+}
 
-    document.querySelectorAll(".activity-tabs button").forEach(btn => {
+async function loadRecent() {
+    const d = await fetchJSON(`/api/stats/recent/?source=${state.activeSource}`);
+    els.recentList.innerHTML = "";
+
+    d.tracks.slice(0, 10).forEach(t => {
+        els.recentList.insertAdjacentHTML("beforeend", `
+            <div class="recent-track">
+                <img src="${t.cover}">
+                <div>
+                    <strong>${t.title}</strong><br>
+                    <small>${t.artist}</small>
+                </div>
+            </div>
+        `);
+    });
+}
+
+async function loadActivity() {
+    const d = await fetchJSON(
+        `/api/stats/activity/?period=${state.activePeriod}&source=${state.activeSource}`
+    );
+
+    els.activityChart.innerHTML = "";
+    const max = Math.max(...d.data, 1);
+
+    d.data.forEach(v => {
+        const bar = document.createElement("div");
+        bar.className = "activity-bar";
+        bar.style.height = v === 0 ? "4px" : `${(v / max) * 100}%`;
+        if (v === max) bar.classList.add("active");
+        els.activityChart.appendChild(bar);
+    });
+}
+
+function initActivityTabs() {
+    els.activityTabs.forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll(".activity-tabs button").forEach(b => b.classList.remove("active"));
+            els.activityTabs.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            activePeriod = btn.dataset.period;
+            state.activePeriod = btn.dataset.period;
             loadActivity();
         };
     });
+}
 
-    function loadAll() {
-        loadNowPlaying();
-        loadStatsSummary();
-        loadRecent();
-        loadActivity();
-    }
-
-    loadAll();
-});
+function loadAll() {
+    loadNowPlaying();
+    loadStatsSummary();
+    loadRecent();
+    loadActivity();
+}
 </script>
+
 
 </body>
 </html>
