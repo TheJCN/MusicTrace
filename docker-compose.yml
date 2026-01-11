@@ -6,8 +6,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     command: gunicorn MusicTrace.wsgi:application --bind 0.0.0.0:8000
-    env_file:
-      - .env
     environment:
       RUN_MIGRATIONS: "1"
     ports:
@@ -21,8 +19,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     command: python manage.py run_scrobbler
-    env_file:
-      - .env
     environment:
       RUN_MIGRATIONS: "0"
     depends_on:
