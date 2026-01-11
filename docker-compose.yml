@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     command: gunicorn MusicTrace.wsgi:application --bind 0.0.0.0:8000
+    env_file:
+      - .env
     environment:
       RUN_MIGRATIONS: "1"
     ports:
@@ -19,6 +21,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     command: python manage.py run_scrobbler
+    env_file:
+      - .env
     environment:
       RUN_MIGRATIONS: "0"
     depends_on:
@@ -29,9 +33,9 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-musictrace}
-      POSTGRES_USER: ${POSTGRES_USER:-musictrace}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-musictrace}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
