@@ -191,8 +191,29 @@ a { text-decoration: none; color: inherit; }
         <h2>Music Analytics</h2>
         <div class="source-switch"></div>
     </div>
+    <div class="card" id="connect-card" style="display:none; max-width:480px; margin:120px auto; text-align:center">
+        <h2>Подключите сервис</h2>
+        <p style="opacity:.7; margin:12px 0 24px">
+            Для отображения аналитики
+        </p>
 
-    <div class="grid">
+        <a href="/yandex/connect/"
+           style="display:block;padding:14px;border-radius:14px;
+                  background:linear-gradient(135deg,#ffcc00,#f59e0b);
+                  color:#000;font-weight:600;margin-bottom:12px">
+            Подключить Яндекс Музыку
+        </a>
+
+        <a href="/spotify/connect/"
+           style="display:block;padding:14px;border-radius:14px;
+                  background:#1db954;
+                  color:#000;font-weight:600">
+            Подключить Spotify
+        </a>
+    </div>
+
+    <div class="grid" id="dashboard-grid">
+
 
         <div>
 
@@ -300,7 +321,8 @@ async function init() {
     const services = await fetchJSON("/api/user/services/");
 
     if (!services.services.length) {
-        document.body.innerHTML = "<h2 style='padding:40px'>Подключите сервис</h2>";
+        document.getElementById("dashboard-grid").style.display = "none";
+        document.getElementById("connect-card").style.display = "block";
         return;
     }
 

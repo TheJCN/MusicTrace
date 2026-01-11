@@ -1,5 +1,4 @@
 from django.utils import timezone
-
 from music.models import UserTrackActivity, Track
 
 

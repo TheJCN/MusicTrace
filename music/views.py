@@ -15,8 +15,6 @@ from integrations.yandex.api import YandexMusicAPI
 from music.forms import YandexTokenForm
 from music.models import UserMusicService, Track, UserTrackActivity
 from music.services.lyrics_service import LyricsService
-from music.services.spotify_service import save_spotify_current_track
-from music.services.yandex_service import save_yandex_current_track
 
 
 def landing(request):
@@ -78,7 +76,7 @@ def spotify_connect(request):
         client_id=settings.SPOTIFY_CLIENT_ID,
         client_secret=settings.SPOTIFY_CLIENT_SECRET,
         redirect_uri=settings.SPOTIFY_REDIRECT_URI,
-        scope="user-read-currently-playing user-read-playback-state",
+        scope="user-read-currently-playing user-read-playback-state user-read-recently-played",
         show_dialog=True,
     )
     return redirect(oauth.get_authorize_url())
@@ -153,25 +151,30 @@ def api_now_playing(request):
 
     if source == "yandex":
         api = YandexMusicAPI(service.access_token)
-        data = api.get_current_track()
+        track = api.get_current_track()
 
-        if not data:
+        if not track:
             return JsonResponse({
                 "status": "loading",
                 "source": "yandex"
             })
 
-        track = save_yandex_current_track(request.user, data)
-
         return JsonResponse({
             "status": "ok",
             "source": "yandex",
             "track": {
-                "id": track.id,
+                "external_id": str(track.id),
                 "title": track.title,
-                "artist": track.artist,
-                "cover": track.cover_url,
-            },
+                "artist": (
+                    track.artists[0].name
+                    if track.artists else "Unknown"
+                ),
+                "cover": (
+                    "https://" + str(track.cover_uri).replace("%%", "orig")
+                    if track.cover_uri else ""
+                ),
+                "duration_ms": track.duration_ms,
+            }
         })
 
     if source == "spotify":
@@ -185,28 +188,22 @@ def api_now_playing(request):
                 "source": "spotify"
             })
 
-        if data is None:
-            return JsonResponse({
-                "status": "empty",
-                "source": "spotify"
-            })
+        if not data:
+            return JsonResponse({"status": "empty", "source": "spotify"})
 
-        if not data.get("is_playing"):
-            return JsonResponse({
-                "status": "paused",
-                "source": "spotify"
-            })
-
-        track = save_spotify_current_track(request.user, data)
+        if not data["is_playing"]:
+            return JsonResponse({"status": "paused", "source": "spotify"})
 
         return JsonResponse({
             "status": "ok",
             "source": "spotify",
             "track": {
-                "id": track.id,
-                "title": track.title,
-                "artist": track.artist,
-                "cover": track.cover_url,
+                "external_id": data["external_id"],
+                "title": data["title"],
+                "artist": data["artist"],
+                "cover": data["cover_url"],
+                "progress_ms": data["progress_ms"],
+                "duration_ms": data["duration_ms"],
             }
         })
 

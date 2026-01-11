@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 import spotipy
 
@@ -51,51 +51,26 @@ class SpotifyMusicAPI:
             "is_playing": data.get("is_playing"),
         }
 
-    def get_liked_tracks(self, limit: int = 100) -> List[dict]:
-        """
-        Получить последние лайкнутые (Saved Tracks) треки пользователя.
+    def get_recently_played(self, limit: int = 50) -> list[dict]:
+        response = self.sp.current_user_recently_played(limit=limit)
 
-        :param limit: максимальное количество треков
-        :return: список dict с данными треков
-        """
-        liked_tracks: List[dict] = []
+        tracks = []
+        for item in response.get("items", []):
+            track = item.get("track")
+            if not track:
+                continue
 
-        offset = 0
-        batch_size = 50  # ограничение Spotify API
+            tracks.append({
+                "external_id": track["id"],
+                "title": track["name"],
+                "artist": ", ".join(a["name"] for a in track["artists"]),
+                "track_url": track["external_urls"]["spotify"],
+                "cover_url": (
+                    track["album"]["images"][0]["url"]
+                    if track["album"]["images"] else ""
+                ),
+                "duration_ms": track["duration_ms"],
+                "played_at": item.get("played_at"),
+            })
 
-        while len(liked_tracks) < limit:
-            response = self.sp.current_user_saved_tracks(
-                limit=batch_size,
-                offset=offset
-            )
-
-            items = response.get("items", [])
-            if not items:
-                break
-
-            for item in items:
-                track = item.get("track")
-                if not track:
-                    continue
-
-                liked_tracks.append({
-                    "external_id": track["id"],
-                    "title": track["name"],
-                    "artist": ", ".join(
-                        artist["name"] for artist in track["artists"]
-                    ),
-                    "track_url": track["external_urls"]["spotify"],
-                    "cover_url": (
-                        track["album"]["images"][0]["url"]
-                        if track["album"]["images"]
-                        else ""
-                    ),
-                    "duration_ms": track["duration_ms"],
-                })
-
-                if len(liked_tracks) >= limit:
-                    break
-
-            offset += batch_size
-
-        return liked_tracks
+        return tracks
