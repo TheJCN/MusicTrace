@@ -5,6 +5,7 @@ USERS_PER_WORKER = 4
 BASE_INTERVAL = 15
 
 SPOTIFY_INTERVAL = 300
+USERS_REFRESH_INTERVAL = 60
 
 
 def calculate_workers(users_count: int) -> int:

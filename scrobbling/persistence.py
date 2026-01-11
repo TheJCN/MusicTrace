@@ -1,5 +1,5 @@
-from asgiref.sync import sync_to_async
 from django.utils import timezone
+from asgiref.sync import sync_to_async
 from music.models import Track, UserTrackActivity
 
 
@@ -17,22 +17,25 @@ def save_track_activity(*, user, track_data: dict):
         }
     )
 
-    played_at = track_data.get("played_at") or timezone.now()
+    last_activity = (
+        UserTrackActivity.objects
+        .filter(user=user, track__service=track.service)
+        .select_related("track")
+        .order_by("-played_at")
+        .first()
+    )
 
-    exists = UserTrackActivity.objects.filter(
-        user=user,
-        track=track,
-        played_at=played_at
-    ).exists()
-
-    if exists:
+    if last_activity and last_activity.track_id == track.id:
         return None
+
+    played_at = track_data.get("played_at") or timezone.now()
 
     return UserTrackActivity.objects.create(
         user=user,
         track=track,
         played_at=played_at
     )
+
 
 save_track_activity_async = sync_to_async(
     save_track_activity,
