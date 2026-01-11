@@ -4,3 +4,5 @@ yandex-music>=2.2
 spotipy>=2.23
 requests>=2.31
 asgiref~=3.11.0
+psycopg[binary]
+gunicorn>=21.2
