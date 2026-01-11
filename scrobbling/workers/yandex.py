@@ -1,13 +1,12 @@
 import asyncio
-import random
 import logging
+import random
 
 from asgiref.sync import sync_to_async
+
 from music.models import UserMusicService
-from scrobbling.adapters.yandex import (
-    get_current_track_async,
-    save_current_track_async,
-)
+from scrobbling.adapters.yandex import get_current_track
+from scrobbling.persistence import save_track_activity_async
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 def get_yandex_token(user):
     service = UserMusicService.objects.filter(
         user=user,
-        service='yandex'
+        service="yandex"
     ).first()
     return service.access_token if service else None
 
@@ -28,9 +27,8 @@ class YandexScrobbleWorker:
 
     async def run(self):
         logger.info(
-            f'Scrobbling worker started '
-            f'users={len(self.users)} '
-            f'interval={self.poll_interval}s'
+            f"Yandex worker started users={len(self.users)} "
+            f"interval={self.poll_interval}s"
         )
 
         while True:
@@ -39,7 +37,7 @@ class YandexScrobbleWorker:
                     await self.scrobble_user(user)
                 except Exception:
                     logger.exception(
-                        f'Scrobbling failed user_id={user.id}'
+                        f"Yandex scrobble failed user_id={user.id}"
                     )
 
             await asyncio.sleep(
@@ -51,17 +49,23 @@ class YandexScrobbleWorker:
         if not token:
             return
 
-        logger.debug(f'Start scrobbling user_id={user.id}')
-
-        yandex_track = await get_current_track_async(token)
-
-        if not yandex_track:
-            logger.debug(f'No current track user_id={user.id}')
+        track = await get_current_track(token)
+        if not track:
             return
 
-        track = await save_current_track_async(user, yandex_track)
+        track_data = {
+            "service": "yandex",
+            "external_id": str(track.id),
+            "title": track.title,
+            "artist": (
+                track.artists[0].name
+                if track.artists else "Unknown"
+            ),
+            "duration_ms": track.duration_ms,
+            "cover_url": (
+                "https://" + str(track.cover_uri).replace("%%", "orig")
+                if track.cover_uri else ""
+            ),
+        }
 
-        logger.info(
-            f'Scrobbled user_id={user.id} '
-            f'{track.artist} — {track.title}'
-        )
+        await save_track_activity_async(user=user, track_data=track_data)

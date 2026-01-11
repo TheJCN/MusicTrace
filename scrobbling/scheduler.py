@@ -1,13 +1,19 @@
 import asyncio
 import logging
 
-from asgiref.sync import sync_to_async
 from django.contrib.auth.models import User
+from asgiref.sync import sync_to_async
 
-from .manager import calculate_workers, calculate_poll_interval
-from .workers import YandexScrobbleWorker
+from scrobbling.manager import (
+    calculate_workers,
+    calculate_poll_interval,
+    SPOTIFY_INTERVAL,
+)
+from scrobbling.workers.yandex import YandexScrobbleWorker
+from scrobbling.workers.spotify import SpotifyScrobbleWorker
 
 logger = logging.getLogger(__name__)
+
 
 def chunk_users(users, chunks_count):
     size = max(1, len(users) // chunks_count)
@@ -22,26 +28,36 @@ def get_users():
 
 async def start_scrobbling():
     users = await get_users()
-
     if not users:
-        logger.error('No users found')
+        logger.warning("No users found for scrobbling")
         return
 
     workers_count = calculate_workers(len(users))
-    poll_interval = calculate_poll_interval(len(users), workers_count)
+
+    yandex_interval = calculate_poll_interval(
+        len(users),
+        workers_count
+    )
+
+    spotify_interval = SPOTIFY_INTERVAL
 
     logger.info(
-        f'Starting scrobbling: '
-        f'users={len(users)} '
-        f'workers={workers_count} '
-        f'interval={poll_interval}s'
+        f"Scrobbling config: "
+        f"yandex_interval={yandex_interval}s "
+        f"spotify_interval={spotify_interval}s "
+        f"workers={workers_count}"
     )
 
     user_chunks = list(chunk_users(users, workers_count))
+    tasks = []
 
-    tasks = [
-        YandexScrobbleWorker(chunk, poll_interval).run()
-        for chunk in user_chunks
-    ]
+    for chunk in user_chunks:
+        tasks.append(
+            YandexScrobbleWorker(chunk, yandex_interval).run()
+        )
+        tasks.append(
+            SpotifyScrobbleWorker(chunk, spotify_interval).run()
+        )
 
     await asyncio.gather(*tasks)
+
